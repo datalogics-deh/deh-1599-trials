@@ -1,0 +1,18 @@
+# Don't put Docker config into the image
+Dockerfile
+.dockerignore
+
+# Ignore Git, IDEs, pre-commit configs, Jenkins, and other project scaffolding
+.git
+.idea
+.ecrc
+.editorconfig
+.empty
+.gitattributes
+.gitignore
+.github
+.pre-commit-config.yaml
+README.md
+
+# Files that aren't part of the image
+rpms

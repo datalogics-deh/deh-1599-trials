@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Black">
+    <option name="enabledOnReformat" value="true" />
+    <option name="executionMode" value="BINARY" />
+    <option name="pathToExecutable" value="$USER_HOME$/.local/bin/black" />
+    <option name="sdkUUID" value="5d711a15-f9f9-4df6-9f70-e694da97a45e" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (hello-cdk)" project-jdk-type="Python SDK" />
+</project>

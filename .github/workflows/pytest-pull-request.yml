@@ -1,0 +1,57 @@
+name: Run pytest on a pull request, with coverage
+
+on:
+  pull_request:
+
+jobs:
+  run-pytest-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check for Secret availability
+        # https://stackoverflow.com/a/70249520/11996393
+        id: secret-check
+        # perform secret check & put boolean result as an output
+        shell: bash
+        run: |
+          if [ "${{ secrets.AWS_ACCESS_KEY }}" != '' -a "${{ secrets.AWS_SECRET_KEY }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: 3.11
+          cache: true
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk
+      - name: Install Python dependencies
+        # Installing the development dependencies as well, which includes Pytest and all the
+        # other modules needed to work with the tests.
+        run: |
+          pdm install --dev
+      - name: Configure AWS credentials, if secrets are available
+        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: "us-east-2"
+      - name: Run pytest
+        uses: pavelzw/pytest-action@v2
+        with:
+          custom-pytest: pdm run coverage run -m pytest --junit-xml=pytest-junit.xml
+      - name: Gather coverage
+        run: |
+          pdm run coverage xml
+      - name: Report coverage
+        uses: MishaKav/pytest-coverage-comment@v1.1.48
+        with:
+          pytest-xml-coverage-path: ./coverage.xml
+          junitxml-path: ./pytest-junit.xml

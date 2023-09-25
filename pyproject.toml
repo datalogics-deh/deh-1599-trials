@@ -1,0 +1,104 @@
+[project]
+name = "cit-cdk-template"
+version = "0.1.0"
+description = "CIT CDK Template"
+authors = [
+    {name = "Datalogics"},
+]
+requires-python = ">=3.11"
+dependencies = [
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.black]
+target-versions = ["py38", "py39", "py310", "py311"]
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+pretty = true
+exclude = [
+    '^\.venv',  # TOML literal string (single-quotes, no escaping necessary)
+    '^cdk.out',  # Don't look at lambda functions that were placed in cdk.out
+]
+files = "."
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pre-commit>=3.3.3",
+    "mypy[dmypy]>=1.5.0",
+    "pytest>=7.4.0",
+    "pytest-md>=0.2.0",
+    "pytest-emoji>=0.2.0",
+    "coverage>=7.3.0",
+    "ruff>=0.0.284",
+]
+
+[tool.pdm.options]
+# Don't install the current project into the venv as an editable project
+add = ["--no-self"]
+install = ["--no-self"]
+remove = ["--no-self"]
+sync = ["--no-self"]
+update = ["--no-self"]
+
+[tool.pdm.scripts]
+# extended user setup, install pre-commit if not in CI, remind user to activate
+install_pre_commit = {shell = '''
+    if [ -z "$CI" ]
+    then
+        pre-commit install
+    fi
+'''}
+remind_activate = {shell = '''
+    if [ -z "$CI" ]
+    then
+        echo 💡 🎥 🎬 Make sure to activate the virtual environment with: 'eval $(pdm venv activate)'
+    fi
+'''}
+post_install = {composite = [
+    "install_pre_commit",
+    "remind_activate",
+]}
+# Run mypy type checking using a daemon with an 24 hour timeout, so it should last
+# the day after first run
+mypy = {shell = "dmypy run --timeout 86400 --"}
+test = "coverage run -m pytest"
+
+[tool.ruff]
+# Enable the pycodestyle (`E`) and Pyflakes (`F`) rules by default.
+# Rules cribbed from the PDM sources themselves.
+extend-select = [
+    "I",  # isort https://beta.ruff.rs/docs/rules/#isort-i
+    "B",  # flake8-bugbear https://beta.ruff.rs/docs/rules/#flake8-bugbear-b
+    "C4",  # flake8-comprehensions https://beta.ruff.rs/docs/rules/#flake8-comprehensions-c4
+    "PGH",  # pygrep-hooks https://beta.ruff.rs/docs/rules/#pygrep-hooks-pgh
+    "RUF",  # ruff https://beta.ruff.rs/docs/rules/#ruff-specific-rules-ruf
+    "W",  # pycodestyle https://beta.ruff.rs/docs/rules/#warning-w
+    "YTT",  # flake8-2020 https://beta.ruff.rs/docs/rules/#flake8-2020-ytt
+    "UP",  # pyupgrade https://beta.ruff.rs/docs/rules/#pyupgrade-up
+    "N",  # naming https://beta.ruff.rs/docs/rules/#pep8-naming-n
+    "PT",  # pytest https://beta.ruff.rs/docs/rules/#flake8-pytest-style-pt
+    # https://dev.to/aws-builders/deploy-to-aws-with-github-actions-and-aws-cdk-4m1e suggests
+    # complexity checks with radon/xenon, but McCabe complexity is available in ruff and
+    # the cost/benefit of using radon/xenon can be discussed later.
+    "C90",  # mccabe https://beta.ruff.rs/docs/rules/#mccabe-c90
+    "FURB",  # refurb https://beta.ruff.rs/docs/rules/#refurb-furb
+]
+ignore = []
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+target-version = "py311"
+
+[tool.tomlsort]
+sort_first = ["project", "build-system"]
+spaces_before_inline_comment = 2
+spaces_indent_inline_array = 4
+trailing_comma_inline_array = true
